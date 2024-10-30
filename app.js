@@ -20,15 +20,15 @@ app.use('/public', express.static('public'));
 app.use('/public/icon', express.static('icon'));
 
 app.get("/login", (req, res) => {
-    res.sendFile(path.join(__dirname, "views", "login.html"));
+    res.sendFile(path.join(__dirname, "docs", "login.html"));
 });
 
 app.get("/register", (req, res) => {
-    res.sendFile(path.join(__dirname, "views", "register.html"));
+    res.sendFile(path.join(__dirname, "docs", "register.html"));
 });
 
 app.get("/index", (req, res) => {
-    res.sendFile(path.join(__dirname, "views", "index.html"));
+    res.sendFile(path.join(__dirname, "docs", "index.html"));
 });
 
 // Ruta para registrar
