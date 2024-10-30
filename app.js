@@ -1,5 +1,6 @@
 const express = require("express");
 const app = express();
+const path = require("path");  
 const dotenv = require("dotenv");
 const session = require("express-session");
 const bcryptjs = require("bcryptjs");
@@ -14,20 +15,20 @@ app.use(session({
     resave: true,
     saveUninitialized: true
 }));
-app.set("view engine", "ejs");
+app.set("view engine", "html");
 app.use('/public', express.static('public'));
 app.use('/public/icon', express.static('icon'));
 
 app.get("/login", (req, res) => {
-    res.render("login");
+    res.sendFile(path.join(__dirname, "views", "login.html"));
 });
 
 app.get("/register", (req, res) => {
-    res.render("register");
+    res.sendFile(path.join(__dirname, "views", "register.html"));
 });
 
 app.get("/index", (req, res) => {
-    res.render("index");
+    res.sendFile(path.join(__dirname, "views", "index.html"));
 });
 
 // Ruta para registrar
