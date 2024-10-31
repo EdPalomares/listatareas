@@ -19,24 +19,27 @@ app.set("view engine", "html");
 app.use('/public', express.static('public'));
 app.use('/public/icon', express.static('icon'));
 
+// Ruta para mostrar la página de login
 app.get("/login", (req, res) => {
-    res.sendFile(path.join(__dirname, "docs", "login.html"));
+    res.sendFile(path.join(__dirname, "docs", "index.html"));
 });
 
+// Ruta para mostrar la página de registro
 app.get("/register", (req, res) => {
     res.sendFile(path.join(__dirname, "docs", "register.html"));
 });
 
-app.get("/index", (req, res) => {
-    res.sendFile(path.join(__dirname, "docs", "index.html"));
+// Ruta para mostrar la lista de tareas
+app.get("/listaTareas", (req, res) => {
+    res.sendFile(path.join(__dirname, "docs", "listaTareas.html"));
 });
 
-// Ruta para registrar
+// Ruta para registrar un usuario
 app.post('/register', async (req, res) => {
     const { username, password, correo, nombreCompleto } = req.body;
     console.log(req.body);
 
-    // Crea la tabla si no existe
+    // Crear la tabla si no existe y registrar usuario
     connection.query(`
         CREATE TABLE IF NOT EXISTS users (
             id INT AUTO_INCREMENT PRIMARY KEY,
@@ -51,7 +54,6 @@ app.post('/register', async (req, res) => {
             return res.status(500).send("Error en el servidor");
         }
 
-        // Insertar usuario
         bcryptjs.hash(password, 8, (err, hashedPassword) => {
             if (err) {
                 console.error('Error al encriptar la contraseña:', err);
@@ -80,14 +82,11 @@ app.post('/login', (req, res) => {
         }
 
         const user = results[0];
-
-        // Comparar la contraseña
         const isPasswordValid = await bcryptjs.compare(password, user.password);
         if (!isPasswordValid) {
             return res.status(401).send("Usuario o contraseña incorrectos");
         }
 
-        // Crear sesión para el usuario
         req.session.userId = user.id;
         res.send("Login exitoso");
     });
@@ -101,7 +100,7 @@ function isAuthenticated(req, res, next) {
     res.status(401).send("Debes iniciar sesión para acceder a esta página");
 }
 
-// Usar el middleware en las rutas protegidas 
+// Ruta para obtener todas las tareas de un usuario
 app.get('/api/tasks', isAuthenticated, (req, res) => {
     const userId = req.session.userId;
 
@@ -115,7 +114,7 @@ app.get('/api/tasks', isAuthenticated, (req, res) => {
 });
 
 // Ruta para agregar una nueva tarea
-app.post('/api/tasks', (req, res) => {
+app.post('/api/tasks', isAuthenticated, (req, res) => {
     const userId = req.session.userId;
     const { name, completed } = req.body;
 
@@ -133,7 +132,6 @@ app.post('/api/tasks', (req, res) => {
             return res.status(500).send("Error al verificar o crear la tabla tarea");
         }
 
-        // Si la tabla se verificó o se creó correctamente, procedemos a la inserción.
         connection.query(
             "INSERT INTO tarea (user_id, tarea, completado) VALUES (?, ?, ?)", 
             [userId, name, completed], 
@@ -149,7 +147,7 @@ app.post('/api/tasks', (req, res) => {
 });
 
 // Ruta para actualizar una tarea
-app.put('/api/tasks/:nombreTarea', (req, res) => {
+app.put('/api/tasks/:nombreTarea', isAuthenticated, (req, res) => {
     const nombreTareaAnterior = req.params.nombreTarea;
     const { name: nuevoNombreTarea, completed: completado } = req.body;
 
@@ -165,7 +163,7 @@ app.put('/api/tasks/:nombreTarea', (req, res) => {
 });
 
 // Ruta para eliminar una tarea
-app.delete('/api/tasks/:name', (req, res) => {
+app.delete('/api/tasks/:name', isAuthenticated, (req, res) => {
     const userId = req.session.userId;
     const { name } = req.params;
 
